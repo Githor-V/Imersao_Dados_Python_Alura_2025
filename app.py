@@ -10,21 +10,21 @@ st.set_page_config(
 )
 
 # --- Carregamento dos dados ---
-df = pd.read_csv("https://raw.githubusercontent.com/vqrca/dashboard_salarios_dados/refs/heads/main/dados-imersao-final.csv")
+df = pd.read_csv("dados.csv")
 
 # --- Barra Lateral (Filtros) ---
 st.sidebar.header("🔍 Filtros")
 
 # Filtro de Ano
-anos_disponiveis = sorted(df['ano'].unique())
+anos_disponiveis = sorted(df['ano_trabalho'].unique())
 anos_selecionados = st.sidebar.multiselect("Ano", anos_disponiveis, default=anos_disponiveis)
 
 # Filtro de Senioridade
-senioridades_disponiveis = sorted(df['senioridade'].unique())
+senioridades_disponiveis = sorted(df['nivel_experiencia'].unique())
 senioridades_selecionadas = st.sidebar.multiselect("Senioridade", senioridades_disponiveis, default=senioridades_disponiveis)
 
 # Filtro por Tipo de Contrato
-contratos_disponiveis = sorted(df['contrato'].unique())
+contratos_disponiveis = sorted(df['tipo_emprego'].unique())
 contratos_selecionados = st.sidebar.multiselect("Tipo de Contrato", contratos_disponiveis, default=contratos_disponiveis)
 
 # Filtro por Tamanho da Empresa
@@ -77,7 +77,7 @@ with col_graf1:
             y='titulo_cargo',
             orientation='h',
             title="Top 10 cargos por salário médio",
-            labels={'usd': 'Média salarial anual (USD)', 'cargo': ''}
+            labels={'salario_em_dolar': 'Média salarial anual (USD)', 'titulo_cargo': ''}
         )
         grafico_cargos.update_layout(title_x=0.1, yaxis={'categoryorder':'total ascending'})
         st.plotly_chart(grafico_cargos, use_container_width=True)
@@ -88,10 +88,10 @@ with col_graf2:
     if not df_filtrado.empty:
         grafico_hist = px.histogram(
             df_filtrado,
-            x='usd',
+            x='salario_em_dolar',
             nbins=30,
             title="Distribuição de salários anuais",
-            labels={'usd': 'Faixa salarial (USD)', 'count': ''}
+            labels={'salario_em_dolar': 'Faixa salarial (USD)', 'count': ''}
         )
         grafico_hist.update_layout(title_x=0.1)
         st.plotly_chart(grafico_hist, use_container_width=True)
@@ -102,7 +102,7 @@ col_graf3, col_graf4 = st.columns(2)
 
 with col_graf3:
     if not df_filtrado.empty:
-        remoto_contagem = df_filtrado['remoto'].value_counts().reset_index()
+        remoto_contagem = df_filtrado['taxa_remoto'].value_counts().reset_index()
         remoto_contagem.columns = ['tipo_trabalho', 'quantidade']
         grafico_remoto = px.pie(
             remoto_contagem,
@@ -119,14 +119,14 @@ with col_graf3:
 
 with col_graf4:
     if not df_filtrado.empty:
-        df_ds = df_filtrado[df_filtrado['cargo'] == 'Data Scientist']
+        df_ds = df_filtrado[df_filtrado['titulo_cargo'] == 'Data Scientist']
         media_ds_pais = df_ds.groupby('residencia_iso3')['usd'].mean().reset_index()
         grafico_paises = px.choropleth(media_ds_pais,
             locations='residencia_iso3',
-            color='usd',
+            color='salario_em_dolar',
             color_continuous_scale='rdylgn',
             title='Salário médio de Cientista de Dados por país',
-            labels={'usd': 'Salário médio (USD)', 'residencia_iso3': 'País'})
+            labels={'salario_em_dolar': 'Salário médio (USD)', 'residencia_iso3': 'País'})
         grafico_paises.update_layout(title_x=0.1)
         st.plotly_chart(grafico_paises, use_container_width=True)
     else:
@@ -135,5 +135,6 @@ with col_graf4:
 # --- Tabela de Dados Detalhados ---
 st.subheader("Dados Detalhados")
 st.dataframe(df_filtrado)
+
 
 
